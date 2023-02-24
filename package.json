@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node cli.js"
   },
   "dependencies": {
     "@sindresorhus/slugify": "^2.2.0",
