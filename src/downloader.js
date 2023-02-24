@@ -62,9 +62,14 @@ export class Downloader {
       })
 
       const content = await page.content()
-      const links = this.#collectLinks(content)
+
+      if (!this.#isGitBookWebsite(content)) {
+        throw new Error('Not a GitBook website')
+      }
 
       await page.close()
+
+      const links = this.#collectLinks(content)
 
       this.#logger.info('Links collected: %O', links)
 
@@ -161,6 +166,12 @@ export class Downloader {
     } finally {
       await page.close()
     }
+  }
+
+  #isGitBookWebsite(content) {
+    const $ = cheerio.load(content)
+
+    return $('body > .gitbook-root').length > 0
   }
 
   #collectLinks(content) {
