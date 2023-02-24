@@ -45,11 +45,11 @@ export class Downloader {
       })
       if (!response.ok()) {
         console.error('Received error response: "%s"', chalk.red(response.statusText()))
-        process.exit(1)
+        throw new Error(`Received error response: "${response.statusText()}"`)
       }
     } catch (e) {
       console.error('Failed: %s', chalk.red(e))
-      process.exit(1)
+      throw e
     }
 
     await page.evaluate(() => {

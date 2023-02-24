@@ -30,7 +30,11 @@ program
   }, 30)
   .action(async (url, options) => {
     const downloader = new Downloader(options)
-    await downloader.run(url)
+    try {
+      await downloader.run(url)
+    } catch {
+      process.exit(1)
+    }
   })
 
 program.parse()
