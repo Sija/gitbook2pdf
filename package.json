@@ -12,6 +12,7 @@
     "chalk": "^5.2.0",
     "cheerio": "^1.0.0-rc.12",
     "commander": "^10.0.0",
+    "consola": "^2.15.3",
     "puppeteer": "^19.7.2"
   },
   "engines": {

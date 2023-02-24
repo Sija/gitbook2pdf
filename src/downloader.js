@@ -4,6 +4,7 @@ import puppeteer from 'puppeteer'
 import * as cheerio from 'cheerio'
 import slugify from '@sindresorhus/slugify'
 import chalk from 'chalk'
+import consola from 'consola'
 
 export class Downloader {
   defaults = {
@@ -23,6 +24,8 @@ export class Downloader {
     },
   }
 
+  #logger = consola.create()
+
   constructor(settings = {}) {
     this.settings = { ...this.defaults, ...settings }
     this.settings.timeout *= 1000 // s -> ms
@@ -36,7 +39,7 @@ export class Downloader {
     })
     const page = await this.browser.newPage()
 
-    console.info('Visiting "%s"', chalk.green(targetURL))
+    this.#logger.info('Visiting "%s"', chalk.green(targetURL))
 
     try {
       const response = await page.goto(targetURL, {
@@ -44,11 +47,11 @@ export class Downloader {
         timeout: this.settings.timeout,
       })
       if (!response.ok()) {
-        console.error('Received error response: "%s"', chalk.red(response.statusText()))
+        this.#logger.fatal('Received error response: "%s"', chalk.red(response.statusText()))
         throw new Error(`Received error response: "${response.statusText()}"`)
       }
     } catch (e) {
-      console.error('Failed: %s', chalk.red(e))
+      this.#logger.fatal('Failed: %s', chalk.red(e))
       throw e
     }
 
@@ -67,14 +70,14 @@ export class Downloader {
 
     await page.close()
 
-    console.info('Links collected: %O', links)
+    this.#logger.info('Links collected: %O', links)
 
     for (let href of links) {
       let slug = this.#href2slug(href)
 
       switch (slug) {
         case '':
-          console.warn('Empty slug, ignoring "%s"', chalk.green(href))
+          this.#logger.warn('Empty slug, ignoring "%s"', chalk.green(href))
           continue
         case '/':
           slug = 'index'
@@ -125,7 +128,7 @@ export class Downloader {
           })
         })
       } catch (e) {
-        console.error('Downloading "%s" failed: %s', chalk.green(url), chalk.red(e))
+        this.#logger.error('Downloading "%s" failed: %s', chalk.green(url), chalk.red(e))
       }
     }
 
@@ -136,7 +139,7 @@ export class Downloader {
     const page = await this.browser.newPage()
 
     try {
-      console.info('Downloading "%s" into "%s"', chalk.green(url), chalk.blue(path))
+      this.#logger.info('Downloading "%s" into "%s"', chalk.green(url), chalk.blue(path))
 
       const response = await page.goto(url.toString(), {
         waitUntil: 'load',
