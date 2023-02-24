@@ -1,0 +1,36 @@
+{
+  "name": "gitbook2pdf",
+  "version": "1.0.0",
+  "description": "CLI utility to turn a published GitBook website into a collection of PDFs for offline reading",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@sindresorhus/slugify": "^2.2.0",
+    "chalk": "^5.2.0",
+    "cheerio": "^1.0.0-rc.12",
+    "commander": "^10.0.0",
+    "puppeteer": "^19.7.2"
+  },
+  "engines": {
+    "node": "^17.3.0",
+    "npm": "^8.3.0"
+  },
+  "keywords": [
+    "gitbook",
+    "pdf",
+    "downloader"
+  ],
+  "author": {
+    "name": "Sijawusz Pur Rahnama",
+    "email": "sija@sija.pl",
+    "url": "https://sija.pl"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sija/gitbook2pdf.git"
+  },
+  "license": "MIT"
+}
