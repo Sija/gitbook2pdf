@@ -38,106 +38,114 @@ export class Downloader {
       this.browser = await puppeteer.launch({
         product: 'firefox'
       })
-      const page = await this.browser.newPage()
-
-      this.#logger.info('Visiting "%s"', chalk.green(targetURL))
-
-      const response = await page.goto(targetURL, {
-        waitUntil: 'load',
-        timeout: this.settings.timeout,
-      })
-
-      if (!response.ok()) {
-        throw new Error(`${response.statusText()} (${response.status()})`)
-      }
-
-      await page.evaluate(() => {
-        // Expand all TOC menu items, so we have all of the links present in DOM
-        const elements = document
-          .querySelectorAll('a[data-rnwrdesktop-fnigne="true"] > div[tabindex="0"]')
-
-        for (let element of elements) {
-          element.click()
-        }
-      })
-
-      const content = await page.content()
-
-      if (!this.#isGitBookWebsite(content)) {
-        throw new Error('Not a GitBook website')
-      }
-
-      await page.close()
-
-      const links = this.#collectLinks(content)
-
-      this.#logger.info('Links collected: %O', links)
-
-      for (let href of links) {
-        let slug = this.#href2slug(href)
-
-        switch (slug) {
-          case '':
-            this.#logger.warn('Empty slug, ignoring "%s"', chalk.green(href))
-            continue
-          case '/':
-            slug = 'index'
-            break
-        }
-
-        const outPath = path.join(this.settings.outDir, `${slug}.pdf`)
-        const outDir = path.dirname(outPath)
-
-        // mkdir -p <path>
-        await fs.mkdir(outDir, {
-          recursive: true
-        })
-
-        const url = new URL(href, targetURL)
-
-        try {
-          await this.#downloadPage(url, outPath, async page => {
-            await page.evaluate(() => {
-              // Expand all expandable sections
-              const sectionsToExpand = document
-                .querySelectorAll('div[aria-controls^="expandable-body-"]')
-
-              for (let section of sectionsToExpand) {
-                section.click()
-              }
-
-              // Remove redundant/interactive elements
-              const itemSelectorsToRemove = [
-                'header + div[data-rnwrdesktop-hidden="true"]',
-                'div[aria-label="Search…"]',
-                'div[aria-label="Page actions"]',
-              ]
-              const itemsToRemove = document
-                .querySelectorAll(itemSelectorsToRemove.join(', '))
-
-              for (let item of itemsToRemove) {
-                item.remove()
-              }
-
-              // Turn relative timestamps into absolute ones
-              const lastModifiedEl = document
-                .querySelector('div[dir="auto"] > span[aria-label]')
-
-              if (lastModifiedEl) {
-                lastModifiedEl.innerHTML = lastModifiedEl.getAttribute('aria-label')
-              }
-            })
-          })
-        } catch (e) {
-          this.#logger.error('Downloading "%s" failed: %s', chalk.green(url), chalk.red(e))
-        }
-      }
-
-      await this.browser.close()
+      await this.#runInternal(targetURL)
     } catch (e) {
       this.#logger.fatal(e.toString())
       throw e
+    } finally {
+      await this.browser?.close()
     }
+  }
+
+  async #runInternal(targetURL) {
+    this.#logger.info('Visiting "%s"', chalk.green(targetURL))
+
+    const page = await this.browser.newPage()
+
+    const response = await page.goto(targetURL, {
+      waitUntil: 'load',
+      timeout: this.settings.timeout,
+    })
+
+    if (!response.ok()) {
+      throw new Error(`${response.statusText()} (${response.status()})`)
+    }
+
+    this.#expandMenuLinks(page)
+
+    const content = await page.content()
+    const $ = cheerio.load(content)
+
+    await page.close()
+
+    if (!this.#isGitBookWebsite($)) {
+      throw new Error('Not a GitBook website')
+    }
+
+    const links = this.#collectLinks($)
+
+    this.#logger.debug('Links collected: %O', links)
+
+    for (let href of links) {
+      await this.#downloadLink(targetURL, href)
+    }
+  }
+
+  async #downloadLink(targetURL, href) {
+    const slug = this.#href2slug(href)
+
+    if (!slug) {
+      this.#logger.warn('Empty slug, ignoring "%s"', chalk.green(href))
+      return
+    }
+
+    const outPath = path.join(this.settings.outDir, `${slug}.pdf`)
+    const outDir = path.dirname(outPath)
+
+    const url = new URL(href, targetURL)
+
+    await this.#downloadPage(url, outPath, async page => {
+      // mkdir -p <path>
+      await fs.mkdir(outDir, {
+        recursive: true
+      })
+      await this.#preparePage(page)
+    })
+  }
+
+  async #expandMenuLinks(page) {
+    await page.evaluate(() => {
+      // Expand all TOC menu items, so we have all of the links present in DOM
+      const elements = document
+        .querySelectorAll('a[data-rnwrdesktop-fnigne="true"] > div[tabindex="0"]')
+
+      for (let element of elements) {
+        element.click()
+      }
+    })
+  }
+
+  async #preparePage(page) {
+    await page.evaluate(() => {
+      // Expand all expandable sections
+      const sectionsToExpand = document
+        .querySelectorAll('div[aria-controls^="expandable-body-"]')
+
+      for (let section of sectionsToExpand) {
+        section.click()
+      }
+
+      // Remove redundant/interactive elements
+      const itemSelectorsToRemove = [
+        'header + div[data-rnwrdesktop-hidden="true"]',
+        'div[aria-label="Search…"]',
+        'div[aria-label="Page actions"]',
+      ]
+      const itemsToRemove = document
+        .querySelectorAll(itemSelectorsToRemove.join(', '))
+
+      for (let item of itemsToRemove) {
+        item.remove()
+      }
+
+      // Turn relative timestamps into absolute ones
+      const lastModifiedEl = document
+        .querySelector('div[dir="auto"] > span[aria-label]')
+
+      if (lastModifiedEl) {
+        lastModifiedEl.innerHTML = lastModifiedEl.getAttribute('aria-label')
+      }
+    })
   }
 
   async #downloadPage(url, path, callback = null) {
@@ -152,31 +160,27 @@ export class Downloader {
       })
 
       if (!response.ok()) {
-        throw new Error(`Received error response: "${chalk.red(response.statusText())}"`)
+        throw new Error(`${response.statusText()} (${response.status()})`)
       }
 
-      if (callback) {
-        await callback(page)
-      }
+      await callback?.(page)
 
       await page.pdf({
         path,
         ...this.settings.pdfOptions,
       })
+    } catch (e) {
+      this.#logger.error('Downloading "%s" failed: %s', chalk.green(url), chalk.red(e))
     } finally {
       await page.close()
     }
   }
 
-  #isGitBookWebsite(content) {
-    const $ = cheerio.load(content)
-
+  #isGitBookWebsite($) {
     return $('body > .gitbook-root').length > 0
   }
 
-  #collectLinks(content) {
-    const $ = cheerio.load(content)
-
+  #collectLinks($) {
     const links = $('a[href^="/"]')
       .map((i, link) => $(link).attr('href'))
       .toArray()
@@ -193,9 +197,10 @@ export class Downloader {
       .replace(/\/+/g, '/')
       .trim()
 
-    if (slug !== '/') {
-      slug = slug.replace(/\/$/, '')
-    }
+    slug = (slug === '/')
+      ? 'index'
+      : slug.replace(/\/$/, '')
+
     return slug
   }
 }
