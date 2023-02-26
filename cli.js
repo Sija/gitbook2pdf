@@ -19,7 +19,7 @@ program
   .argument('<url>', 'URL of the website to scrape')
   .option('-o, --outDir <path>', 'output directory used to save files', 'pages')
   .option('-t, --timeout <delay>', 'request timeout in seconds', value => {
-    const parsedValue = parseInt(value, 10)
+    const parsedValue = parseFloat(value)
     if (isNaN(parsedValue)) {
       throw new InvalidArgumentError('Not a number.')
     }
