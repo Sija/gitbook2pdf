@@ -7,7 +7,7 @@ import chalk from 'chalk'
 import consola from 'consola'
 
 export class Downloader {
-  defaults = {
+  static defaults = {
     timeout: 30,
     outDir: 'pages',
     pdfOptions: {
@@ -27,7 +27,7 @@ export class Downloader {
   #logger = consola.create()
 
   constructor(settings = {}) {
-    this.settings = { ...this.defaults, ...settings }
+    this.settings = { ...Downloader.defaults, ...settings }
     this.settings.timeout *= 1000 // s -> ms
   }
 
