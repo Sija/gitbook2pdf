@@ -15,10 +15,6 @@
     "consola": "^2.15.3",
     "puppeteer": "^19.7.2"
   },
-  "engines": {
-    "node": "^17.3.0",
-    "npm": "^8.3.0"
-  },
   "keywords": [
     "gitbook",
     "pdf",
