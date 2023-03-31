@@ -128,7 +128,7 @@ export class Downloader {
       // Remove redundant/interactive elements
       const itemSelectorsToRemove = [
         'header + div[data-rnwrdesktop-hidden="true"]',
-        'div[aria-label="Search…"]',
+        'div[aria-label^="Search"]',
         'div[aria-label="Page actions"]',
       ]
       const itemsToRemove = document
