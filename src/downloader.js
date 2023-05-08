@@ -143,7 +143,7 @@ export class Downloader {
         .querySelector('div[dir="auto"] > span[aria-label]')
 
       if (lastModifiedEl) {
-        lastModifiedEl.innerHTML = lastModifiedEl.getAttribute('aria-label')
+        lastModifiedEl.innerText = lastModifiedEl.getAttribute('aria-label')
       }
     })
   }
