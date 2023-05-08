@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer'
 import * as cheerio from 'cheerio'
 import slugify from '@sindresorhus/slugify'
 import chalk from 'chalk'
-import consola from 'consola'
+import { createConsola } from 'consola'
 
 export class Downloader {
   static defaults = {
@@ -24,7 +24,7 @@ export class Downloader {
     },
   }
 
-  #logger = consola.create()
+  #logger = createConsola()
 
   constructor(settings = {}) {
     this.settings = { ...Downloader.defaults, ...settings }
