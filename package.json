@@ -12,7 +12,7 @@
     "chalk": "^5.2.0",
     "cheerio": "^1.0.0-rc.12",
     "commander": "^11.0.0",
-    "consola": "^3.1.0",
+    "consola": "^3.2.1",
     "puppeteer": "^20.7.3"
   },
   "keywords": [
