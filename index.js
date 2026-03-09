@@ -1,1 +1,1 @@
-export { Downloader } from './src/downloader.js'
+export { Downloader } from "./src/downloader.js";
