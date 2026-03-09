@@ -189,7 +189,10 @@ export class Downloader {
   }
 
   #isGitBookWebsite($) {
-    return $("body > .gitbook-root").length > 0;
+    return (
+      $('head > link[rel="preconnect"][href^="https://api.gitbook.com"]')
+        .length > 0
+    );
   }
 
   #collectLinks($) {
