@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@sindresorhus/slugify": "^3.0.1",
-    "chalk": "^6.0.0",
+    "chalk": "^6.0.1",
     "cheerio": "^1.2.0",
     "commander": "^15.0.0",
     "consola": "^3.4.2",
