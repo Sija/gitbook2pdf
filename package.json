@@ -11,7 +11,7 @@
     "@sindresorhus/slugify": "^4.0.0",
     "chalk": "^6.0.1",
     "cheerio": "^1.2.0",
-    "commander": "^15.0.0",
+    "commander": "^15.1.0",
     "consola": "^3.4.2",
     "puppeteer": "^25.16.0"
   },
