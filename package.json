@@ -8,7 +8,7 @@
     "start": "node cli.js"
   },
   "dependencies": {
-    "@sindresorhus/slugify": "^4.0.0",
+    "@sindresorhus/slugify": "^4.0.1",
     "chalk": "^6.0.1",
     "cheerio": "^1.2.0",
     "commander": "^15.1.0",
