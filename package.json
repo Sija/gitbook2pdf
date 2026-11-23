@@ -13,7 +13,7 @@
     "cheerio": "^1.2.0",
     "commander": "^15.1.0",
     "consola": "^3.4.2",
-    "puppeteer": "^25.17.0"
+    "puppeteer": "^25.18.1"
   },
   "keywords": [
     "gitbook",
